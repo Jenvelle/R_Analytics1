@@ -1,0 +1,29 @@
+---
+title: "RWorksheet#5a"
+author: "Condag, Gagante, and Gonzaga"
+date: "2024-11-06"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Extracting 10 Products from Amazon
+```{r}
+library(polite)
+
+polite::use_manners(save_as = 'polite_scrape.R')
+
+url <- 'https://www.amazon.com/'
+
+
+session <- bow(url,
+               user_agent = "Educational")
+session
+```
+
+```{r}
+
+```
+
