@@ -220,61 +220,247 @@ session <- bow(url,
 session
 ```
 
+# Shoes Category
 ```{r}
-library(rvest)
-library(dplyr)
+shoes_url <- 'https://www.amazon.com/s?k=shoes&i=fashion-womens-intl-ship&crid=31A4H0KY2V228&sprefix=shoes%2Cfashion-womens-intl-ship%2C357&ref=nb_sb_ss_p13n-conservative-preferred-department-reranking_1_5'
 
-Shoes <- 'https://www.amazon.com/s?k=shoes&i=fashion-womens-intl-ship&crid=31A4H0KY2V228&sprefix=shoes%2Cfashion-womens-intl-ship%2C357&ref=nb_sb_ss_p13n-conservative-preferred-department-reranking_1_5'
-makeup <- 'https://www.amazon.com/s?k=makeup&i=beauty-intl-ship&crid=3A9DKM1NJH3QQ&sprefix=make%2Cbeauty-intl-ship%2C325&ref=nb_sb_ss_ts-doa-p_1_4'
-jewelry <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225018011&rh=n%3A7141123011%2Cn%3A16225018011%2Cn%3A7192394011&ref=nav_em__nav_desktop_sa_intl_jewelry_0_2_12_4'
-girls_clothing <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225020011&rh=n%3A7141123011%2Cn%3A16225020011%2Cn%3A1040664&ref=nav_em__nav_desktop_sa_intl_clothing_0_2_14_2'
-babytoys <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225005011&rh=n%3A%2116225005011%2Cn%3A196601011&ref=nav_em__nav_desktop_sa_intl_baby_toddler_toys_0_2_10_4'
-
-scrape_amazon_products <- function(url, category) {
-  # Read the page content
+scrape_shoes <- function(url, category) {
   page <- read_html(url)
   
   product_titles <- page %>%
-    html_nodes("span.a-text-normal") %>% 
+    html_nodes("h2.a-size-mini") %>% 
     html_text(trim = TRUE)
-  
+
   price <- page %>% 
-    html_nodes('.a-price .a-offscreen') %>% 
+    html_nodes("span.a-price-whole") %>% 
     html_text(trim = TRUE)
   
   ratings <- page %>% 
-    html_nodes('span.a-icon-alt') %>% 
+    html_nodes("span.a-icon-alt") %>% 
     html_text(trim = TRUE)
   
-  product_titles <- head(product_titles, 30)
-  price <- head(price, 30)
-  ratings <- head(ratings, 30)
+  review <- page %>% 
+    html_nodes("div.a-sectionr-celwidget") %>% 
+    html_text(trim = TRUE)
   
-  
-  data <- data.frame(
-    Category = rep(category, 30),
-    Price = price,
-    ProductTitle = product_titles,
-    Ratings = ratings
+  data.frame(
+    Product_titles = product_titles[1:30],
+    Price = price[1:30],
+    Ratings = ratings[1:30],
+    Review = review[1:30]
   )
-  
-  return(data)
 }
 
-shoes_products <- scrape_amazon_products(Shoes, "Shoes")
-makeup_products <- scrape_amazon_products(makeup, "Makeup")
-jewelry_products <- scrape_amazon_products(jewelry, "Jewelry")
-girls_clothing <- scrape_amazon_products(girls_clothing, "Girls Clothing")
-baby_toys <- scrape_amazon_products(babytoys, "Baby Toys")
-
-head(shoes_products, 30)
-head(makeup_products, 30)
-head(jewelry_products, 30)
-head(girls_clothing, 30)
-head(baby_toys, 30)
+shoes_products <- scrape_shoes(shoes_url, "Shoes")
+shoes_products
 ```
+
+# Makeup Category
+```{r}
+makeup_url <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225006011&rh=n%3A%2116225006011%2Cn%3A11058281&ref=nav_em__nav_desktop_sa_intl_makeup_0_2_11_2'
+
+scrape_makeup <- function(url, category) {
+  page <- read_html(url)
+  
+  product_titles <- page %>%
+    html_nodes("h2.a-size-mini") %>% 
+    html_text(trim = TRUE)
+
+  price <- page %>% 
+    html_nodes("span.a-price-whole") %>% 
+    html_text(trim = TRUE)
+  
+  ratings <- page %>% 
+    html_nodes("span.a-icon-alt") %>% 
+    html_text(trim = TRUE)
+  
+  review <- page %>% 
+    html_nodes("span.a-size-base.review-text") %>% 
+    html_text(trim = TRUE)
+  
+  data.frame(
+    Product_titles = product_titles[1:30],
+    Price = price[1:30],
+    Ratings = ratings[1:30],
+    Review = review[1:30]
+  )
+}
+
+makeup_products <- scrape_makeup(makeup_url, "Makeup")
+makeup_products
+```
+
+# Jewelry Category
+```{r}
+jewelry_url <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225018011&rh=n%3A7141123011%2Cn%3A16225018011%2Cn%3A7192394011&ref=nav_em__nav_desktop_sa_intl_jewelry_0_2_12_4'
+
+scrape_jewelry <- function(url, category) {
+  page <- read_html(url)
+  
+  product_titles <- page %>%
+    html_nodes("h2.a-size-mini") %>% 
+    html_text(trim = TRUE)
+
+  price <- page %>% 
+    html_nodes("span.a-price-whole") %>% 
+    html_text(trim = TRUE)
+  
+  ratings <- page %>% 
+    html_nodes("span.a-icon-alt") %>% 
+    html_text(trim = TRUE)
+  
+  review <- page %>% 
+    html_nodes("span.a-size-base.review-text") %>% 
+    html_text(trim = TRUE)
+  
+  data.frame(
+    Product_titles = product_titles[1:30],
+    Price = price[1:30],
+    Ratings = ratings[1:30],
+    Review = review[1:30]
+  )
+}
+
+jewelry_products <- scrape_jewelry(jewelry_url, "Jewelry")
+head(jewelry_products, 30)
+```
+
+# Girls_Clothing Category
+```{r}
+girls_clothing_url <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225020011&rh=n%3A7141123011%2Cn%3A16225020011%2Cn%3A1040664&ref=nav_em__nav_desktop_sa_intl_clothing_0_2_14_2'
+
+scrape_girls_clothing <- function(url, category) {
+  page <- read_html(url)
+  
+  product_titles <- page %>%
+    html_nodes("h2.a-size-mini") %>% 
+    html_text(trim = TRUE)
+
+  price <- page %>% 
+    html_nodes("span.a-price-whole") %>% 
+    html_text(trim = TRUE)
+  
+  ratings <- page %>% 
+    html_nodes("span.a-icon-alt") %>% 
+    html_text(trim = TRUE)
+  
+  review <- page %>% 
+    html_nodes("span.a-size-base.review-text") %>% 
+    html_text(trim = TRUE)
+  
+  data.frame(
+    Product_titles = product_titles[1:30],
+    Price = price[1:30],
+    Ratings = ratings[1:30],
+    Review = review[1:30]
+  )
+}
+
+girls_clothing_products <- scrape_girls_clothing(girls_clothing_url, "Girls_Clothing")
+head(girls_clothing_products, 30)
+```
+
+# BabyToys Category
+```{r}
+babytoys_url <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225005011&rh=n%3A%2116225005011%2Cn%3A196601011&ref=nav_em__nav_desktop_sa_intl_baby_toddler_toys_0_2_10_4'
+
+scrape_babytoys <- function(url, category) {
+  page <- read_html(url)
+  
+  product_titles <- page %>%
+    html_nodes("h2.a-size-mini") %>% 
+    html_text(trim = TRUE)
+
+  price <- page %>% 
+    html_nodes("span.a-price-whole") %>% 
+    html_text(trim = TRUE)
+  
+  ratings <- page %>% 
+    html_nodes("span.a-icon-alt") %>% 
+    html_text(trim = TRUE)
+  
+  review <- page %>% 
+    html_nodes("span.a-size-base.review-text") %>% 
+    html_text(trim = TRUE)
+  
+  data.frame(
+    Product_titles = product_titles[1:30],
+    Price = price[1:30],
+    Ratings = ratings[1:30],
+    Review = review[1:30]
+  )
+}
+
+babytoys_products <- scrape_babytoys(babytoys_url, "Babytoys")
+head(babytoys_products, 30)
+```
+
 6. Describe the data you have extracted.
+  - We extracted 30 products for each category from amazon. The categories that we chose are shoes, makeups, jewelry, girls' clothing, and babytoys. For each categories, we extracted 30 product titles, price, rating and reviews that is shown inside a data frame.
+  
 7. What will be your use case for the data you have extracted?
+  - The use case for the data extacted is trend analysis.
+  
 8. Create graphs regarding the use case. And briefly explain it.
+```{r}
+library(ggplot2)
+
+shoes_data <- data.frame(Date = c('2024-01-01', '2024-02-01', '2024-03-01'),
+                        Avg_Price = c(50, 55, 53))
+shoes_data$Date <- as.Date(shoes_data$Date)
+
+ggplot(shoes_data, aes(x = Date, y = Avg_Price)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Average Price Trend for Shoes Over Time", x = "Date", y = "Average Price")
+```
+  - The Trend Analysis graph tracks changes in a key metric (e.g., average price) over time. The x-axis shows the time period (like months), while the y-axis shows the value of the metric. For example, a graph could show the average price of shoes increasing from $50 in January to $55 in February, then dropping to $53 in March. This helps identify patterns, like price fluctuations, and informs decisions on when prices might rise or fall, aiding in pricing strategies and market forecasting.
+  
 9. Graph the price and the ratings for each category. Use basic plotting functions and ggplot2 package.
+
+# Shoes Category
+```{r}
+library(dplyr)
+library(ggplot2)
+
+shoes_products$Price <- as.numeric(gsub("[^0-9.]", "", shoes_products$Price))
+shoes_products$Ratings <- as.numeric(gsub("[^0-9.]", "", shoes_products$Ratings))
+
+shoes_price_ratings <- function(data, category_name) {
+  ggplot(data, aes(x = Price, y = Ratings)) +
+    geom_point(color = "blue") +  
+    geom_smooth(method = "lm", se = FALSE, color = "red") +  
+    theme_minimal() +
+    labs(title = paste("Price vs Ratings for", category_name), 
+         x = "Price", 
+         y = "Ratings") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+shoes_price_ratings(shoes_products, "Shoes")
+```
+
+# Makeup Category
+```{r}
+library(dplyr)
+library(ggplot2)
+
+makeup_products$Price <- as.numeric(gsub("[^0-9.]", "", makeup_products$Price))
+makeup_products$Ratings <- as.numeric(gsub("[^0-9.]", "", makeup_products$Ratings))
+
+makeup_price_ratings <- function(data, category_name) {
+  ggplot(data, aes(x = Price, y = Ratings)) +
+    geom_point(color = "coral1") +  
+    geom_smooth(method = "lm", se = FALSE, color = "chocolate4") +  
+    theme_minimal() +
+    labs(title = paste("Price vs Ratings for", category_name), 
+         x = "Price", 
+         y = "Ratings") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+makeup_price_ratings(makeup_products, "Shoes")
+```
+
+
 10. Rank the products of each category by price and ratings. Explain briefly.
