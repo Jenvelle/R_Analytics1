@@ -1,7 +1,7 @@
 ---
-title: "RWorksheet#5a"
+title: "RWorksheet#5b"
 author: "Condag, Gagante, and Gonzaga"
-date: "2024-11-06"
+date: "2024-11-20"
 output: pdf_document
 ---
 
@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Extracting 10 Products from Amazon
+#Extracting 10 Products for each category from Amazon
 ```{r}
 library(polite)
 
@@ -23,7 +23,49 @@ session <- bow(url,
 session
 ```
 
+#Shoes Products
 ```{r}
+library(RSelenium)
 
+shoes_reviews_url <- 'https://www.amazon.com/LAURMOSA-Flower-Wedding-Pointed-L1018NubBlack/product-reviews/B0D3DVQ13J'
+
+scrape_shoes <- function(url, category) {
+  page <- read_html(url)
+  
+  reviewer <- page %>%
+    html_nodes("span.a-profile.name") %>% 
+    html_text(trim = TRUE)
+
+  date <- page %>% 
+    html_nodes("span.a-size-base") %>% 
+    html_text(trim = TRUE)
+  
+  individual_ratings <- page %>% 
+    html_nodes("i.a-icon") %>% 
+    html_text(trim = TRUE)
+  
+  text_review <- page %>% 
+    html_nodes("span.a-size-base.review-text") %>% 
+    html_text(trim = TRUE)
+  
+  title_of_review <- page %>% 
+    html_nodes("div.a-sectionr-celwidget") %>% 
+    html_text(trim = TRUE)
+  
+  verified_purchase <- page %>% 
+    html_nodes("span.a-size-mini") %>% 
+    html_text(trim = TRUE)
+  
+  data.frame(
+    Reviewer = reviewer[1:20],
+    Date = date[1:20],
+    Individual_Ratings = individual_ratings[1:20],
+    Text_Review = text_review[1:20],
+    Title_Of_Review = title_of_review[1:20],
+    Verified_Purchase = verified_purchase[1:20]
+  )
+}
+
+shoes_products <- scrape_shoes(shoes_reviews_url, "Shoes")
+shoes_products
 ```
-
