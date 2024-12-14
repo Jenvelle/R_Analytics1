@@ -11,61 +11,151 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Extracting 10 Products for each category from Amazon
 ```{r}
+library(rvest)
+library(httr)
+library(dplyr)
 library(polite)
+library(stringr)
 
-polite::use_manners(save_as = 'polite_scrape.R')
-
-url <- 'https://www.amazon.com/'
-
-
-session <- bow(url,
+url <- "https://www.amazon.com/"
+session <- bow(url, 
                user_agent = "Educational")
 session
+
+urls <- c('https://www.amazon.com/s?k=shoes&crid=38ZJ8F21Z8HC3&sprefix=shoes%2Caps%2C453&ref=nb_sb_noss_1', 
+          'https://www.amazon.com/s?k=makeup&crid=JKZ76XNFYQIR&sprefix=makeup%2Caps%2C478&ref=nb_sb_noss_1',
+          'https://www.amazon.com/s?k=jewelry&crid=32NP062DSNN6S&sprefix=jewel%2Caps%2C479&ref=nb_sb_noss_2',
+          'https://www.amazon.com/s?k=girl%27s+clothing&crid=24XOJPYVS1TSP&sprefix=girl%27s+clothing%2Caps%2C408&ref=nb_sb_noss_1',
+          'https://www.amazon.com/s?k=babytoys&crid=32QK3FKF2G833&sprefix=babytoys%2Caps%2C511&ref=nb_sb_noss_2')
+
 ```
 
-#Shoes Products
 ```{r}
-library(RSelenium)
+#code to extract urls of the 10 products per category
+shoes <- read_html(urls[1]) %>%
+    html_nodes("a.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal") %>%
+    html_attr("href") %>%
+    unique() %>%
+    paste0("https://www.amazon.com", .)
 
-shoes_reviews_url <- 'https://www.amazon.com/LAURMOSA-Flower-Wedding-Pointed-L1018NubBlack/product-reviews/B0D3DVQ13J'
+makeup <- read_html(urls[2]) %>%
+    html_nodes("a.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal") %>%
+    html_attr("href") %>%
+    unique() %>%
+    paste0("https://www.amazon.com", .)
 
-scrape_shoes <- function(url, category) {
+jewelry <- read_html(urls[3]) %>%
+    html_nodes("a.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal") %>%
+    html_attr("href") %>%
+    unique() %>%
+    paste0("https://www.amazon.com", .)
+
+girls_clothing <- read_html(urls[4]) %>%
+    html_nodes("a.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal") %>%
+    html_attr("href") %>%
+    unique() %>%
+    paste0("https://www.amazon.com", .)
+
+babytoys <- read_html(urls[5]) %>%
+    html_nodes("a.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal") %>%
+    html_attr("href") %>%
+    unique() %>%
+    paste0("https://www.amazon.com", .)
+
+#df containing the url of 10 products per category
+product_category <- data.frame(
+  Shoes = shoes[1:10],
+  Makeup = makeup[1:10],
+  Jewelry = jewelry[1:10],
+  Girls_Clothing = girls_clothing[1:10],
+  BabyToys = babytoys[1:10]
+)
+```
+```{r}
+#url of 10 products split into each of their category
+shoes_products <- product_category$Shoes
+makeup_products<- product_category$Makeup
+jewelry_products <- product_category$Jewelry
+gc_products <- product_category$Girls_Clothing
+bt_products <- product_category$BabyToys
+```
+
+```{r}
+scrape_reviews <- function(url) {
   page <- read_html(url)
+          
+  #scraping the name of each product          
+  product_name <- page %>%
+    html_nodes(".a-size-large.product-title-word-break") %>%
+    html_text(trim = T) %>%
+    strsplit(" ") %>%                
+    .[[1]] %>%                       
+    .[1:4] %>%
+    gsub("\\,", "", .) %>%
+    paste(collapse = " ")  
   
-  reviewer <- page %>%
-    html_nodes("span.a-profile.name") %>% 
-    html_text(trim = TRUE)
-
-  date <- page %>% 
-    html_nodes("span.a-size-base") %>% 
-    html_text(trim = TRUE)
+  #scraping username of each reviewers
+  user_name_reviews <- page %>%
+    html_nodes(".a-profile-name") %>%
+    html_text() %>%
+    unique()
   
-  individual_ratings <- page %>% 
-    html_nodes("i.a-icon") %>% 
-    html_text(trim = TRUE)
+  #scraping review dates of users
+  review_dates <- page %>%
+    html_nodes(".a-size-base.a-color-secondary.review-date") %>%
+    html_text() %>%
+    gsub(".*on ", "", .)
   
-  text_review <- page %>% 
-    html_nodes("span.a-size-base.review-text") %>% 
-    html_text(trim = TRUE)
+  #scraping reviewer individual rating
+  reviewer_rating <- page %>%
+    html_nodes(".a-icon-alt") %>%
+    html_text() %>%
+    gsub(" out.*", "", .) %>%
+    .[grepl("^[0-9.]+$", .)] %>% 
+    as.numeric()
   
-  title_of_review <- page %>% 
-    html_nodes("div.a-sectionr-celwidget") %>% 
-    html_text(trim = TRUE)
+  #scraping review title
+  review_title <- page %>%
+    html_nodes(".a-size-base.a-link-normal.review-title.a-color-base.review-title-content.a-text-bold span:nth-of-type(2)") %>%
+    html_text()
   
-  verified_purchase <- page %>% 
-    html_nodes("span.a-size-mini") %>% 
+  #scraping text reviews of each user
+  text_reviews <- page %>%
+    html_nodes(".a-expander-content.reviewText.review-text-content.a-expander-partial-collapse-content") %>%
     html_text(trim = TRUE)
-  
+    
   data.frame(
-    Reviewer = reviewer[1:20],
-    Date = date[1:20],
-    Individual_Ratings = individual_ratings[1:20],
-    Text_Review = text_review[1:20],
-    Title_Of_Review = title_of_review[1:20],
-    Verified_Purchase = verified_purchase[1:20]
-  )
+    Product_Name = rep(product_name, 20),
+    Reviewer_Names = user_name_reviews[2:21],
+    Review_Date = review_dates[1:20],
+    Individual_Ratings = reviewer_rating[1:20],
+    Review_Title = review_title[1:20],
+    Text_Reviews = text_reviews[1:20]
+    )
 }
 
-shoes_products <- scrape_shoes(shoes_reviews_url, "Shoes")
-shoes_products
+#applying scrape reviews to each of the product category's links
+shoes_reviews <- lapply(shoes_products, scrape_reviews)
+makeup_reviews <- lapply(makeup_products, scrape_reviews)
+jewelry_reviews <- lapply(jewelry_products, scrape_reviews)
+gc_reviews <- lapply(gc_products, scrape_reviews)
+bt_reviews <- lapply(bt_products, scrape_reviews)
+```
+
+```{r}
+#combining the data frames of the product reviews per category
+shoes_reviews_df <- do.call(rbind, shoes_reviews)
+makeup_reviews_df <- do.call(rbind, makeup_reviews)
+jewelry_reviews_df <- do.call(rbind, jewelry_reviews)
+gc_reviews_df <- do.call(rbind, gc_reviews)
+bt_reviews_df <- do.call(rbind, bt_reviews)
+```
+
+```{r}
+#code to view the contents of the product's data frame
+print(shoes_reviews_df)
+print(makeup_reviews_df)
+print(jewelry_reviews_df)
+print(gc_reviews_df)
+print(bt_reviews_df)
 ```
