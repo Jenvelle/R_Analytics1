@@ -82,6 +82,7 @@ topShows <- cbind(titleAndRank, ratingsDf, cleanedVotesDf, numEpisodesDf, YearDf
 
 topShows
 ```
+
 B. It will also include the number of user reviews and the number of critic reviews, as well as the popularity rating for each tv shows.
 ```{r}
 homePage <- 'https://www.imdb.com/chart/toptv/'
@@ -209,6 +210,7 @@ print(mostShowsYear)
 ```{r}
 library(httr)
 library(polite)
+library(rvest)
 
 polite::use_manners(save_as = 'polite_scrape.R')
 
@@ -222,7 +224,7 @@ session
 
 # Shoes Category
 ```{r}
-shoes_url <- 'https://www.amazon.com/s?k=shoes&i=fashion-womens-intl-ship&crid=31A4H0KY2V228&sprefix=shoes%2Cfashion-womens-intl-ship%2C357&ref=nb_sb_ss_p13n-conservative-preferred-department-reranking_1_5'
+shoes_url <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225020011&rh=n%3A7141123011%2Cn%3A16225020011%2Cn%3A679217011&ref=nav_em__nav_desktop_sa_intl_shoes_0_2_14_3'
 
 scrape_shoes <- function(url, category) {
   page <- read_html(url)
@@ -232,7 +234,7 @@ scrape_shoes <- function(url, category) {
     html_text(trim = TRUE)
 
   price <- page %>% 
-    html_nodes("span.a-price-whole") %>% 
+    html_nodes(".a-price .a-offscreen") %>% 
     html_text(trim = TRUE)
   
   ratings <- page %>% 
@@ -257,7 +259,7 @@ shoes_products
 
 # Makeup Category
 ```{r}
-makeup_url <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225006011&rh=n%3A%2116225006011%2Cn%3A11058281&ref=nav_em__nav_desktop_sa_intl_makeup_0_2_11_2'
+makeup_url <- 'https://www.amazon.com/s?i=specialty-aps&bbn=16225006011&rh=n%3A%2116225006011%2Cn%3A11058281&'
 
 scrape_makeup <- function(url, category) {
   page <- read_html(url)
@@ -267,7 +269,7 @@ scrape_makeup <- function(url, category) {
     html_text(trim = TRUE)
 
   price <- page %>% 
-    html_nodes("span.a-price-whole") %>% 
+    html_nodes(".a-price .a-offscreen") %>% 
     html_text(trim = TRUE)
   
   ratings <- page %>% 
@@ -302,7 +304,7 @@ scrape_jewelry <- function(url, category) {
     html_text(trim = TRUE)
 
   price <- page %>% 
-    html_nodes("span.a-price-whole") %>% 
+    html_nodes(".a-price .a-offscreen") %>% 
     html_text(trim = TRUE)
   
   ratings <- page %>% 
@@ -337,7 +339,7 @@ scrape_girls_clothing <- function(url, category) {
     html_text(trim = TRUE)
 
   price <- page %>% 
-    html_nodes("span.a-price-whole") %>% 
+    html_nodes(".a-price .a-offscreen") %>% 
     html_text(trim = TRUE)
   
   ratings <- page %>% 
@@ -372,7 +374,7 @@ scrape_babytoys <- function(url, category) {
     html_text(trim = TRUE)
 
   price <- page %>% 
-    html_nodes("span.a-price-whole") %>% 
+    html_nodes(".a-price .a-offscreen") %>% 
     html_text(trim = TRUE)
   
   ratings <- page %>% 
@@ -461,6 +463,194 @@ makeup_price_ratings <- function(data, category_name) {
 
 makeup_price_ratings(makeup_products, "Shoes")
 ```
+# Jewelry Category
+```{r}
+library(dplyr)
+library(ggplot2)
 
+jewelry_products$Price <- as.numeric(gsub("[^0-9.]", "", jewelry_products$Price))
+jewelry_products$Ratings <- as.numeric(gsub("[^0-9.]", "", jewelry_products$Ratings))
+
+jewelry_price_ratings <- function(data, category_name) {
+  ggplot(data, aes(x = Price, y = Ratings)) +
+    geom_point(color = "purple") +  
+    geom_smooth(method = "lm", se = FALSE, color = "darkblue") +  
+    theme_minimal() +
+    labs(title = paste("Price vs Ratings for", category_name), 
+         x = "Price", 
+         y = "Ratings") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+jewelry_price_ratings(jewelry_products, "Jewelry")
+
+```
+
+# Girl's Clothing Category
+```{r}
+library(dplyr)
+library(ggplot2)
+
+girls_clothing_products$Price <- as.numeric(gsub("[^0-9.]", "", girls_clothing_products$Price))
+girls_clothing_products$Ratings <- as.numeric(gsub("[^0-9.]", "", girls_clothing_products$Ratings))
+
+girls_clothing_price_ratings <- function(data, category_name) {
+  ggplot(data, aes(x = Price, y = Ratings)) +
+    geom_point(color = "pink") +  
+    geom_smooth(method = "lm", se = FALSE, color = "deeppink4") +  
+    theme_minimal() +
+    labs(title = paste("Price vs Ratings for", category_name), 
+         x = "Price", 
+         y = "Ratings") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+girls_clothing_price_ratings(girls_clothing_products, "Girls' Clothing")
+
+```
+
+# Baby Toys Category
+```{r}
+library(dplyr)
+library(ggplot2)
+
+babytoys_products$Price <- as.numeric(gsub("[^0-9.]", "", babytoys_products$Price))
+babytoys_products$Ratings <- as.numeric(gsub("[^0-9.]", "", babytoys_products$Ratings))
+
+babytoys_price_ratings <- function(data, category_name) {
+  ggplot(data, aes(x = Price, y = Ratings)) +
+    geom_point(color = "green") +  
+    geom_smooth(method = "lm", se = FALSE, color = "darkgreen") +  
+    theme_minimal() +
+    labs(title = paste("Price vs Ratings for", category_name), 
+         x = "Price", 
+         y = "Ratings") +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+
+babytoys_price_ratings(babytoys_products, "Baby Toys")
+
+```
 
 10. Rank the products of each category by price and ratings. Explain briefly.
+
+```{r}
+rank_products <- function(data, shoes_products) {
+  data <- data %>%
+    mutate(
+      Price = as.numeric(gsub("[^0-9.]", "", Price)),
+      Ratings = as.numeric(gsub("[^0-9.]", "", Ratings))
+    ) %>%
+    mutate(
+      Rank_by_Price = rank(-Price, ties.method = "min"),
+      Rank_by_Ratings = rank(-Ratings, ties.method = "min")
+    ) %>%
+    arrange(Rank_by_Price) %>%
+    select(Product_titles, Price, Ratings, Rank_by_Price, Rank_by_Ratings) %>%
+    head(10)
+}
+
+shoes_ranked <- rank_products(shoes_products, "Shoes")
+print("Top 10 Shoes by Price and Ratings")
+print(shoes_ranked)
+
+makeup_ranked <- rank_products(makeup_products, "Makeup")
+print("Top 10 Makeup Products by Price and Ratings")
+print(makeup_ranked)
+
+jewelry_ranked <- rank_products(jewelry_products, "Jewelry")
+print("Top 10 Jewelry Products by Price and Ratings")
+print(jewelry_ranked)
+
+girls_clothing_ranked <- rank_products(girls_clothing_products, "Girl's Clothing")
+print("Top 10 Girl's Clothing Products by Price and Ratings")
+print(girls_clothing_ranked)
+
+babytoys_ranked <- rank_products(babytoys_products, "Baby Toys")
+print("Top 10 Baby Toys Products by Price and Ratings")
+print(babytoys_ranked)
+```
+
+```{r}
+# Shoes - Price Ranking
+plot_rankings <- function(data, shoes_ranked, rank_col, value_col, value_name) {
+  ggplot(data, aes(x = reorder(Product_titles, -!!sym(value_col)), y = !!sym(value_col), fill = !!sym(value_col))) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    labs(
+      title = paste("Top 10", shoes_ranked, "by", value_name),
+      x = "Product Titles",
+      y = value_name
+    ) +
+    theme_minimal()
+}
+
+plot_rankings(shoes_ranked, "Shoes", "Rank_by_Price", "Price", "Price")
+```
+```{r}
+# Makeup - Price Ranking
+plot_rankings <- function(data, makeup_ranked, rank_col, value_col, value_name) {
+  ggplot(data, aes(x = reorder(Product_titles, -!!sym(value_col)), y = !!sym(value_col), fill = !!sym(value_col))) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    labs(
+      title = paste("Top 10", makeup_ranked, "by", value_name),
+      x = "Product Titles",
+      y = value_name
+    ) +
+    theme_minimal()
+}
+
+plot_rankings(makeup_ranked, "Makeup", "Rank_by_Price", "Price", "Price")
+```
+```{r}
+# Jewelry - Price Ranking
+plot_rankings <- function(data, jewelry_ranked, rank_col, value_col, value_name) {
+  ggplot(data, aes(x = reorder(Product_titles, -!!sym(value_col)), y = !!sym(value_col), fill = !!sym(value_col))) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    labs(
+      title = paste("Top 10", jewelry_ranked, "by", value_name),
+      x = "Product Titles",
+      y = value_name
+    ) +
+    theme_minimal()
+}
+
+plot_rankings(jewelry_ranked, "Jewelry", "Rank_by_Price", "Price", "Price")
+```
+```{r}
+# Girl’s Clothing - Price Ranking
+plot_rankings <- function(data, girls_clothing_ranked, rank_col, value_col, value_name) {
+  ggplot(data, aes(x = reorder(Product_titles, -!!sym(value_col)), y = !!sym(value_col), fill = !!sym(value_col))) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    labs(
+      title = paste("Top 10", girls_clothing_ranked, "by", value_name),
+      x = "Product Titles",
+      y = value_name
+    ) +
+    theme_minimal()
+}
+
+plot_rankings(girls_clothing_ranked, "Girl's Clothing", "Rank_by_Price", "Price", "Price")
+```
+
+```{r}
+# Baby Toys - Price Ranking
+plot_rankings <- function(data, babytoys_ranked, rank_col, value_col, value_name) {
+  ggplot(data, aes(x = reorder(Product_titles, -!!sym(value_col)), y = !!sym(value_col), fill = !!sym(value_col))) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    labs(
+      title = paste("Top 10", babytoys_ranked, "by", value_name),
+      x = "Product Titles",
+      y = value_name
+    ) +
+    theme_minimal()
+}
+
+plot_rankings(babytoys_ranked, "Baby Toys", "Rank_by_Price", "Price", "Price")
+
+```
+
